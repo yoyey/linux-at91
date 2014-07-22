@@ -399,6 +399,7 @@ static const struct panel_desc foxlink_fl500wvr00_a0t = {
 		.width = 108,
 		.height = 65,
 	},
+	.bus_format = VIDEO_BUS_FMT_RGB888_1X24,
 };
 
 static const struct drm_display_mode lg_lp129qe_mode = {
