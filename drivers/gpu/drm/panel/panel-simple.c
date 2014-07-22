@@ -41,6 +41,8 @@ struct panel_desc {
 		unsigned int width;
 		unsigned int height;
 	} size;
+
+	enum video_bus_format bus_format;
 };
 
 struct panel_simple {
@@ -89,6 +91,9 @@ static int panel_simple_get_fixed_modes(struct panel_simple *panel)
 
 	connector->display_info.width_mm = panel->desc->size.width;
 	connector->display_info.height_mm = panel->desc->size.height;
+	if (panel->desc->bus_format)
+		drm_display_info_set_bus_formats(&connector->display_info,
+						 &panel->desc->bus_format, 1);
 
 	return num;
 }
