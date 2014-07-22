@@ -59,6 +59,18 @@ config MFD_AAT2870_CORE
 	  additional drivers must be enabled in order to use the
 	  functionality of the device.
 
+config MFD_ATMEL_HLCDC
+	tristate "Atmel HLCDC (HLCD Controller)"
+	select MFD_CORE
+	select REGMAP_MMIO
+	depends on OF
+	help
+	  Choose this option if you have an ATMEL SoC with an HLCDC (HLCD
+	  Controller) IP (i.e. at91sam9n12, at91sam9x5 family or sama5d3
+	  family).
+	  This MFD device exposes two subdevices: a PWM chip and a Display
+	  Controller.
+
 config MFD_BCM590XX
 	tristate "Broadcom BCM590xx PMUs"
 	select MFD_CORE
