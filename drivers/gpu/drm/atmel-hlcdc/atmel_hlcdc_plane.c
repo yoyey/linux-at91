@@ -315,17 +315,32 @@ atmel_hlcdc_plane_update_general_settings(struct atmel_hlcdc_plane *plane,
 static void atmel_hlcdc_plane_update_format(struct atmel_hlcdc_plane *plane,
 				struct atmel_hlcdc_plane_update_req *req)
 {
-	u32 mode;
+	u32 cfg;
 	int ret;
 
-	ret = atmel_hlcdc_format_to_plane_mode(req->fb->pixel_format, &mode);
+	ret = atmel_hlcdc_format_to_plane_mode(req->fb->pixel_format, &cfg);
 	if (ret)
 		return;
+
+	if ((req->fb->pixel_format == DRM_FORMAT_YUV422 ||
+	     req->fb->pixel_format == DRM_FORMAT_NV61) &&
+	    (plane->rotation == ATMEL_HLCDC_PLANE_90DEG_ROTATION ||
+	     plane->rotation == ATMEL_HLCDC_PLANE_270DEG_ROTATION ))
+		cfg |= ATMEL_HLCDC_YUV422ROT;
 
 	atmel_hlcdc_layer_update_cfg(&plane->layer,
 				     ATMEL_HLCDC_LAYER_FORMAT_CFG_ID,
 				     0xffffffff,
-				     mode);
+				     cfg);
+
+	if (req->fb->pixel_format == DRM_FORMAT_RGB888)
+		cfg = ATMEL_HLCDC_LAYER_DMA_ROTDIS;
+	else
+		cfg = 0;
+
+	atmel_hlcdc_layer_update_cfg(&plane->layer,
+				     ATMEL_HLCDC_LAYER_DMA_CFG_ID,
+				     ATMEL_HLCDC_LAYER_DMA_ROTDIS, cfg);
 }
 
 static void atmel_hlcdc_plane_update_buffers(struct atmel_hlcdc_plane *plane,
@@ -394,6 +409,8 @@ int atmel_hlcdc_plane_prepare_update_req(struct drm_plane *p,
 	unsigned int tmp;
 	int x_offset = 0;
 	int y_offset = 0;
+	int hsub = 1;
+	int vsub = 1;
 	int i;
 
 	if ((req->src_x | req->src_y | req->src_w | req->src_h) &
@@ -410,7 +427,7 @@ int atmel_hlcdc_plane_prepare_update_req(struct drm_plane *p,
 		return -EINVAL;
 
 	/*
-	 * Swap width and size if in case of 90 or 270 degrees rotation
+	 * Swap width and size in case of 90 or 270 degrees rotation
 	 */
 	if (plane->rotation == ATMEL_HLCDC_PLANE_90DEG_ROTATION ||
 	    plane->rotation == ATMEL_HLCDC_PLANE_270DEG_ROTATION) {
@@ -449,8 +466,13 @@ int atmel_hlcdc_plane_prepare_update_req(struct drm_plane *p,
 	patched_src_h = DIV_ROUND_CLOSEST(patched_crtc_h * req->src_h,
 					  req->crtc_h);
 
+	hsub = drm_format_horz_chroma_subsampling(req->fb->pixel_format);
+	vsub = drm_format_vert_chroma_subsampling(req->fb->pixel_format);
+
 	for (i = 0; i < req->nplanes; i++) {
 		unsigned int offset = 0;
+		int xdiv = i ? hsub : 1;
+		int ydiv = i ? vsub : 1;
 
 		req->bpp[i] = drm_format_plane_cpp(req->fb->pixel_format, i);
 		if (!req->bpp[i])
@@ -458,37 +480,42 @@ int atmel_hlcdc_plane_prepare_update_req(struct drm_plane *p,
 
 		switch (plane->rotation) {
 		case ATMEL_HLCDC_PLANE_90DEG_ROTATION:
-			offset = (y_offset + req->src_y + patched_src_w - 1) *
-				 req->fb->pitches[i];
-			offset += (x_offset + req->src_x) * req->bpp[i];
-			req->xstride[i] = req->fb->pitches[i] *
-					  (patched_src_w - 1);
+			offset = ((y_offset + req->src_y + patched_src_w - 1) /
+				  ydiv) * req->fb->pitches[i];
+			offset += ((x_offset + req->src_x) / xdiv) *
+				  req->bpp[i];
+			req->xstride[i] = ((patched_src_w - 1) / ydiv) *
+					  req->fb->pitches[i];
 			req->pstride[i] = -req->fb->pitches[i] - req->bpp[i];
 			break;
 		case ATMEL_HLCDC_PLANE_180DEG_ROTATION:
-			offset = (y_offset + req->src_y + patched_src_h - 1) *
-				 req->fb->pitches[i];
-			offset += (x_offset + req->src_x + patched_src_w) *
-				  req->bpp[i];
-			req->xstride[i] = ((patched_src_w - 2) * req->bpp[i]) -
-					   req->fb->pitches[i];
+			offset = ((y_offset + req->src_y + patched_src_h - 1) /
+				  ydiv) * req->fb->pitches[i];
+			offset += ((x_offset + req->src_x + patched_src_w - 1) /
+				   xdiv) * req->bpp[i];
+			req->xstride[i] = ((((patched_src_w - 1) / xdiv) - 1) *
+					   req->bpp[i]) - req->fb->pitches[i];
 			req->pstride[i] = -2 * req->bpp[i];
 			break;
 		case ATMEL_HLCDC_PLANE_270DEG_ROTATION:
-			offset = (y_offset + req->src_y) * req->fb->pitches[i];
-			offset += (x_offset + req->src_x + patched_src_h) *
-				  req->bpp[i];
-			req->xstride[i] = -(req->fb->pitches[i] *
-					    (patched_src_w - 1)) -
+			offset = ((y_offset + req->src_y) / ydiv) *
+				 req->fb->pitches[i];
+			offset += ((x_offset + req->src_x + patched_src_h - 1) /
+				   xdiv) * req->bpp[i];
+			req->xstride[i] = -(((patched_src_w - 1) / ydiv) *
+					    req->fb->pitches[i]) -
 					  (2 * req->bpp[i]);
 			req->pstride[i] = req->fb->pitches[i] - req->bpp[i];
 			break;
 		case ATMEL_HLCDC_PLANE_NO_ROTATION:
 		default:
-			offset = (y_offset + req->src_y) * req->fb->pitches[i];
-			offset += (x_offset + req->src_x) * req->bpp[i];
+			offset = ((y_offset + req->src_y) / ydiv) *
+				 req->fb->pitches[i];
+			offset += ((x_offset + req->src_x) / xdiv) *
+				  req->bpp[i];
 			req->xstride[i] = req->fb->pitches[i] -
-					  (patched_src_w * req->bpp[i]);
+					  ((patched_src_w / xdiv) *
+					   req->bpp[i]);
 			req->pstride[i] = 0;
 			break;
 		}
