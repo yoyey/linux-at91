@@ -233,6 +233,7 @@ void atmel_hlcdc_layer_irq(struct atmel_hlcdc_layer *layer)
 
 	/* Get changed bits */
 	flip_status ^= flip->status;
+	flip->status |= flip_status;
 
 	if (flip_status & ATMEL_HLCDC_DMA_CHANNEL_DSCR_LOADED) {
 		atmel_hlcdc_layer_fb_flip_release_queue(layer, dma->cur);
@@ -245,7 +246,6 @@ void atmel_hlcdc_layer_irq(struct atmel_hlcdc_layer *layer)
 		dma->cur = NULL;
 	}
 
-	flip->status |= flip_status;
 
 	if (!dma->queue) {
 		atmel_hlcdc_layer_update_apply(layer);
