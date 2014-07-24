@@ -228,6 +228,10 @@ void atmel_hlcdc_layer_irq(struct atmel_hlcdc_layer *layer)
 					ATMEL_HLCDC_LAYER_DONE_IRQ;
 		}
 
+		if (plane_status & ATMEL_HLCDC_LAYER_OVR_IRQ)
+			flip->dscrs[i]->status |=
+					ATMEL_HLCDC_DMA_CHANNEL_DSCR_OVERRUN;
+
 		flip_status |= flip->dscrs[i]->status;
 	}
 
@@ -248,6 +252,21 @@ void atmel_hlcdc_layer_irq(struct atmel_hlcdc_layer *layer)
 		dma->cur = NULL;
 	}
 
+	if (flip_status & ATMEL_HLCDC_DMA_CHANNEL_DSCR_OVERRUN) {
+		regmap_write(regmap, desc->regs_offset + ATMEL_HLCDC_LAYER_CHDR,
+			     ATMEL_HLCDC_LAYER_RST);
+		if (dma->queue) {
+			atmel_hlcdc_layer_fb_flip_release_queue(layer, dma->queue);
+			if (dma->queue->finished)
+				dma->queue->finished(flip->finished_data);
+		}
+
+		if (dma->cur)
+			atmel_hlcdc_layer_fb_flip_release_queue(layer, dma->cur);
+
+		dma->cur = NULL;
+		dma->queue = NULL;
+	}
 
 	if (!dma->queue) {
 		atmel_hlcdc_layer_update_apply(layer);
