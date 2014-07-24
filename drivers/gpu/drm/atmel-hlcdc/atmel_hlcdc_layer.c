@@ -239,6 +239,8 @@ void atmel_hlcdc_layer_irq(struct atmel_hlcdc_layer *layer)
 		atmel_hlcdc_layer_fb_flip_release_queue(layer, dma->cur);
 		dma->cur = dma->queue;
 		dma->queue = NULL;
+		if (flip->finished)
+			flip->finished(flip->finished_data);
 	}
 
 	if (flip_status & ATMEL_HLCDC_DMA_CHANNEL_DSCR_DONE) {
