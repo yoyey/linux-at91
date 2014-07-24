@@ -395,6 +395,13 @@ static int atmel_hlcdc_plane_check_update_req(struct drm_plane *p,
 	     atmel_hlcdc_format_embedds_alpha(req->fb->pixel_format)))
 		return -EINVAL;
 
+	if (req->crtc_x < 0 || req->crtc_y < 0)
+		return -EINVAL;
+
+	if (req->crtc_w + req->crtc_x > req->crtc->mode.crtc_hdisplay ||
+	    req->crtc_h + req->crtc_y > req->crtc->mode.crtc_vdisplay)
+		return -EINVAL;
+
 	return 0;
 }
 
