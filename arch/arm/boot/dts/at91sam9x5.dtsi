@@ -1167,6 +1167,7 @@
 				reg = <0xf8034000 0x300>;
 				interrupts = <18 IRQ_TYPE_LEVEL_HIGH 4>;
 				#pwm-cells = <3>;
+				clocks = <&pwm_clk>;
 				status = "disabled";
 			};
 		};
