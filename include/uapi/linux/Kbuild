@@ -407,6 +407,7 @@ header-y += veth.h
 header-y += vfio.h
 header-y += vhost.h
 header-y += videodev2.h
+header-y += video-bus-format.h
 header-y += virtio_9p.h
 header-y += virtio_balloon.h
 header-y += virtio_blk.h
