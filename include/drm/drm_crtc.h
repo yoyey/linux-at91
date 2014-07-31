@@ -31,6 +31,7 @@
 #include <linux/idr.h>
 #include <linux/fb.h>
 #include <linux/hdmi.h>
+#include <linux/video-bus-format.h>
 #include <drm/drm_mode.h>
 #include <drm/drm_fourcc.h>
 
@@ -109,6 +110,9 @@ struct drm_display_info {
 
 	enum subpixel_order subpixel_order;
 	u32 color_formats;
+
+	const enum video_bus_format *bus_formats;
+	int nbus_formats;
 
 	u8 cea_rev;
 };
@@ -926,6 +930,11 @@ extern void drm_mode_config_cleanup(struct drm_device *dev);
 
 extern int drm_mode_connector_update_edid_property(struct drm_connector *connector,
 						struct edid *edid);
+
+extern int drm_display_info_set_bus_formats(struct drm_display_info *info,
+					    const enum video_bus_format *fmts,
+					    int nfmts);
+
 extern int drm_object_property_set_value(struct drm_mode_object *obj,
 					 struct drm_property *property,
 					 uint64_t val);

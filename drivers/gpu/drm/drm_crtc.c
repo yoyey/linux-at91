@@ -798,6 +798,34 @@ static void drm_mode_remove(struct drm_connector *connector,
 	drm_mode_destroy(connector->dev, mode);
 }
 
+/*
+ * drm_display_info_set_bus_formats - set the supported bus formats
+ * @info: display info to store bus formats in
+ * @fmts: array containing the supported bus formats
+ * @nfmts: the number of entries in the fmts array
+ *
+ * Store the suppported bus formats in display info structure.
+ */
+int drm_display_info_set_bus_formats(struct drm_display_info *info,
+				     const enum video_bus_format *fmts,
+				     int nfmts)
+{
+	enum video_bus_format *formats = NULL;
+
+	if (fmts && nfmts) {
+		formats = kmemdup(fmts, sizeof(*fmts) * nfmts, GFP_KERNEL);
+		if (!formats)
+			return -ENOMEM;
+	}
+
+	kfree(info->bus_formats);
+	info->bus_formats = formats;
+	info->nbus_formats = formats ? nfmts : 0;
+
+	return 0;
+}
+EXPORT_SYMBOL(drm_display_info_set_bus_formats);
+
 /**
  * drm_connector_init - Init a preallocated connector
  * @dev: DRM device
