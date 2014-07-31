@@ -328,6 +328,74 @@ static const struct panel_desc chunghwa_claa101wb01 = {
 	},
 };
 
+static const struct drm_display_mode edt_et057090dhu_mode = {
+	.clock = 25175,
+	.hdisplay = 640,
+	.hsync_start = 640 + 16,
+	.hsync_end = 640 + 16 + 30,
+	.htotal = 640 + 16 + 30 + 114,
+	.vdisplay = 480,
+	.vsync_start = 480 + 10,
+	.vsync_end = 480 + 10 + 3,
+	.vtotal = 480 + 10 + 3 + 32,
+	.vrefresh = 60,
+	.flags = DRM_MODE_FLAG_NVSYNC | DRM_MODE_FLAG_NHSYNC,
+};
+
+static const struct panel_desc edt_et057090dhu = {
+	.modes = &edt_et057090dhu_mode,
+	.num_modes = 1,
+	.size = {
+		.width = 115,
+		.height = 86,
+	},
+};
+
+static const struct drm_display_mode edt_etm0700g0dh6_mode = {
+	.clock = 33260,
+	.hdisplay = 800,
+	.hsync_start = 800 + 40,
+	.hsync_end = 800 + 40 + 128,
+	.htotal = 800 + 40 + 128 + 88,
+	.vdisplay = 480,
+	.vsync_start = 480 + 10,
+	.vsync_end = 480 + 10 + 2,
+	.vtotal = 480 + 10 + 2 + 33,
+	.vrefresh = 60,
+	.flags = DRM_MODE_FLAG_NHSYNC | DRM_MODE_FLAG_NVSYNC,
+};
+
+static const struct panel_desc edt_etm0700g0dh6 = {
+	.modes = &edt_etm0700g0dh6_mode,
+	.num_modes = 1,
+	.size = {
+		.width = 152,
+		.height = 91,
+	},
+};
+
+static const struct drm_display_mode foxlink_fl500wvr00_a0t_mode = {
+	.clock = 32260,
+	.hdisplay = 800,
+	.hsync_start = 800 + 168,
+	.hsync_end = 800 + 168 + 64,
+	.htotal = 800 + 168 + 64 + 88,
+	.vdisplay = 480,
+	.vsync_start = 480 + 37,
+	.vsync_end = 480 + 37 + 2,
+	.vtotal = 480 + 37 + 2 + 8,
+	.vrefresh = 60,
+};
+
+static const struct panel_desc foxlink_fl500wvr00_a0t = {
+	.modes = &foxlink_fl500wvr00_a0t_mode,
+	.num_modes = 1,
+	.size = {
+		.width = 108,
+		.height = 65,
+	},
+};
+
 static const struct drm_display_mode lg_lp129qe_mode = {
 	.clock = 285250,
 	.hdisplay = 2560,
@@ -382,6 +450,9 @@ static const struct of_device_id platform_of_match[] = {
 	}, {
 		.compatible = "chunghwa,claa101wb01",
 		.data = &chunghwa_claa101wb01
+	}, {
+		.compatible = "foxlink,fl500wvr00-a0t",
+		.data = &foxlink_fl500wvr00_a0t,
 	}, {
 		.compatible = "lg,lp129qe",
 		.data = &lg_lp129qe,
