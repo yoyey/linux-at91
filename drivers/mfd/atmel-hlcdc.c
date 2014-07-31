@@ -99,6 +99,7 @@ static int atmel_hlcdc_remove(struct platform_device *pdev)
 
 static const struct of_device_id atmel_hlcdc_match[] = {
 	{ .compatible = "atmel,sama5d3-hlcdc" },
+	{ .compatible = "atmel,at91sam9x5-hlcdc" },
 	{ /* sentinel */ },
 };
 
