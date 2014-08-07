@@ -24,6 +24,10 @@
 			adc0: adc@f804c000 {
 				status = "okay";
 			};
+
+			pwm0: pwm@f8034000 {
+				status = "okay";
+			};
 		};
 	};
 
